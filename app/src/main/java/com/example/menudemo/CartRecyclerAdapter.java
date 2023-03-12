@@ -13,9 +13,9 @@ import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
 public class CartRecyclerAdapter extends RecyclerView.Adapter<CartRecyclerAdapter.CartItemViewHolder> {
-    private final List<Painting> list;
+    private final List<PaintingEntity> list;
 
-    public CartRecyclerAdapter(List<Painting> list) {
+    public CartRecyclerAdapter(List<PaintingEntity> list) {
         this.list = list;
     }
 
@@ -31,7 +31,7 @@ public class CartRecyclerAdapter extends RecyclerView.Adapter<CartRecyclerAdapte
     @Override
     public void onBindViewHolder(@NonNull CartItemViewHolder holder, int position) {
         int index = holder.getAdapterPosition();
-        Painting painting = list.get(index);
+        PaintingEntity painting = list.get(index);
         holder.getImageView().setImageResource(painting.getDrawableId());
         holder.getImageView().setScaleType(ImageView.ScaleType.CENTER_CROP);
         holder.getNameView().setText(painting.getName());

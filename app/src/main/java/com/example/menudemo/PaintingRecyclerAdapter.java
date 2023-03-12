@@ -12,13 +12,14 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class PaintingRecyclerAdapter extends ContextMenuRecyclerView.Adapter<PaintingRecyclerAdapter.PaintingViewHolder> {
-    private final List<Painting> list;
+    private final List<PaintingEntity> list;
     private final RecyclerViewLongClickListener recyclerViewLongClickListener;
-    private final RecyclerViewClickListener<Painting> recyclerViewClickListener;
+    private final RecyclerViewClickListener<PaintingEntity> recyclerViewClickListener;
 
-    public PaintingRecyclerAdapter(List<Painting> list, RecyclerViewClickListener<Painting> recyclerViewClickListener, RecyclerViewLongClickListener recyclerViewLongClickListener) {
+    public PaintingRecyclerAdapter(List<PaintingEntity> list, RecyclerViewClickListener<PaintingEntity> recyclerViewClickListener, RecyclerViewLongClickListener recyclerViewLongClickListener) {
         this.list = list;
         this.recyclerViewClickListener = recyclerViewClickListener;
         this.recyclerViewLongClickListener = recyclerViewLongClickListener;
@@ -42,7 +43,7 @@ public class PaintingRecyclerAdapter extends ContextMenuRecyclerView.Adapter<Pai
         String artistAndDateText = list.get(index).getArtist() + " - " + list.get(index).getDateOfPublish();
         holder.getArtistAndDate().setText(artistAndDateText);
         holder.bindOnClickListener(list.get(position), recyclerViewClickListener);
-        holder.bindOnLongClickListener(position, recyclerViewLongClickListener);
+        holder.bindOnLongClickListener(list.get(position).getId(), recyclerViewLongClickListener);
     }
 
 
@@ -51,7 +52,8 @@ public class PaintingRecyclerAdapter extends ContextMenuRecyclerView.Adapter<Pai
         return list.size();
     }
 
-    public void removeAt(int position) {
+    public void removeAt(Long id) {
+        int position = list.indexOf(list.stream().filter((painting) -> painting.getId().equals(id)).collect(Collectors.toList()).get(0));
         list.remove(position);
         notifyItemRemoved(position);
         notifyItemRangeChanged(position, list.size());
@@ -86,12 +88,12 @@ public class PaintingRecyclerAdapter extends ContextMenuRecyclerView.Adapter<Pai
         public void onCreateContextMenu(ContextMenu menu, View v, ContextMenu.ContextMenuInfo menuInfo) {
         }
 
-        public void bindOnClickListener(final Painting item, final RecyclerViewClickListener<Painting> listener) {
+        public void bindOnClickListener(final PaintingEntity item, final RecyclerViewClickListener<PaintingEntity> listener) {
             itemView.setOnClickListener(view -> listener.onRecyclerViewItemClick(item));
         }
 
-        public void bindOnLongClickListener(final int position, final RecyclerViewLongClickListener listener) {
-            itemView.setOnLongClickListener(view -> listener.onRecyclerViewItemLongClick(position));
+        public void bindOnLongClickListener(final Long id, final RecyclerViewLongClickListener listener) {
+            itemView.setOnLongClickListener(view -> listener.onRecyclerViewItemLongClick(id));
         }
     }
 }

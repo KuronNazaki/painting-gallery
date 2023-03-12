@@ -18,31 +18,28 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    public static final String PAINTING_ADDED_TO_CART = "PAINTING_ADDED_TO_CART";
-
-    List<Painting> list = new ArrayList<>();
-    static final List<Painting> listToBeSentToCart = new ArrayList<>();
+    private AppDatabase database;
+    List<PaintingEntity> list;
     PaintingRecyclerAdapter adapter;
     int recyclerViewItemPosition;
+    Long deletedId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        database = AppDatabase.getDatabase(MainActivity.this);
 
-        Painting paintingAddedToCart = getIntent().getSerializableExtra(PAINTING_ADDED_TO_CART, Painting.class);
-        if (paintingAddedToCart != null) {
-            listToBeSentToCart.add(paintingAddedToCart);
-        }
-
-        list = getListOfPainting();
+        PaintingDao paintingDao = database.getPaintingDao();
+        list = paintingDao.getPaintings();
         ContextMenuRecyclerView recyclerView = findViewById(R.id.recyclerView);
         adapter = new PaintingRecyclerAdapter(list, item -> {
             Intent detailIntent = new Intent(MainActivity.this, ItemDetailActivity.class);
-            detailIntent.putExtra("PAINTING", item);
+
+            detailIntent.putExtra("PAINTING_ID", item.getId());
             startActivity(detailIntent);
-        }, position -> {
-            recyclerViewItemPosition = position;
+        }, id -> {
+            deletedId = id;
             return false;
         });
         recyclerView.setAdapter(adapter);
@@ -69,11 +66,15 @@ public class MainActivity extends AppCompatActivity {
         AdapterView.AdapterContextMenuInfo i = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
         switch (item.getItemId()) {
             case R.id.edit:
+                Intent editIntent = new Intent(MainActivity.this, EditActivity.class);
+                editIntent.putExtra("EDIT_PAINTING", deletedId);
+                startActivity(editIntent);
                 return true;
-            case R.id.share:
-                return false;
             case R.id.delete:
-                adapter.removeAt(recyclerViewItemPosition);
+                PaintingDao dao = database.getPaintingDao();
+                PaintingEntity painting = dao.getPaintingById(deletedId);
+                dao.delete(painting);
+                adapter.removeAt(deletedId);
                 return true;
             default:
                 return super.onContextItemSelected(item);
@@ -84,11 +85,12 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         AdapterView.AdapterContextMenuInfo i = (AdapterView.AdapterContextMenuInfo) item.getMenuInfo();
         switch (item.getItemId()) {
-            case R.id.search:
-                return false;
+            case R.id.add:
+                Intent addIntent = new Intent(MainActivity.this, AddNewActivity.class);
+                startActivity(addIntent);
+                return true;
             case R.id.cart:
                 Intent cartIntent = new Intent(MainActivity.this, CartActivity.class);
-                cartIntent.putExtra(CartActivity.CART_LIST, (ArrayList<Painting>) listToBeSentToCart);
                 startActivity(cartIntent);
                 return true;
             default:
@@ -96,14 +98,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private List<Painting> getListOfPainting() {
-        List<Painting> list = new ArrayList<>();
-        list.add(new Painting("The Starry Night", "Vicent van Gogh", "June 1889", R.mipmap.starry_night));
-        list.add(new Painting("Impression, Sunrise", "Claude Monet", "1872", R.mipmap.impression_sunrise));
-        list.add(new Painting("The Magpie", "Claude Monet", "1869", R.mipmap.the_magpie));
-        list.add(new Painting("Woman with a Parasol – Madame Monet and Her Son", "Claude Monet", "1975", R.mipmap.woman_with_parasol));
-        list.add(new Painting("The Great Wave off Kanagawa", "Hokusai", "1831", R.mipmap.tsunami));
-        list.add(new Painting("Liberty Leading the People", "Eugène Delacroix", "1830", R.mipmap.delacroix));
-        return list;
-    }
+
+
 }
